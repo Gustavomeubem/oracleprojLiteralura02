@@ -1,0 +1,144 @@
+package com.bookcatalog.service;
+
+import com.bookcatalog.model.Book;
+import com.bookcatalog.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class BookService {
+    
+    @Autowired
+    private BookRepository bookRepository;
+    
+    // CRUD operations
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+    
+    public Optional<Book> getBookById(Long id) {
+        return bookRepository.findById(id);
+    }
+    
+    public Optional<Book> getBookByIsbn(String isbn) {
+        return bookRepository.findByIsbn(isbn);
+    }
+    
+    public Book createBook(Book book) {
+        return bookRepository.save(book);
+    }
+    
+    public Optional<Book> updateBook(Long id, Book bookDetails) {
+        return bookRepository.findById(id)
+                .map(existingBook -> {
+                    existingBook.setTitle(bookDetails.getTitle());
+                    existingBook.setAuthor(bookDetails.getAuthor());
+                    existingBook.setPublicationYear(bookDetails.getPublicationYear());
+                    existingBook.setIsbn(bookDetails.getIsbn());
+                    existingBook.setDescription(bookDetails.getDescription());
+                    existingBook.setGenre(bookDetails.getGenre());
+                    existingBook.setRating(bookDetails.getRating());
+                    existingBook.setPageCount(bookDetails.getPageCount());
+                    existingBook.setPublisher(bookDetails.getPublisher());
+                    existingBook.setLanguage(bookDetails.getLanguage());
+                    return bookRepository.save(existingBook);
+                });
+    }
+    
+    public boolean deleteBook(Long id) {
+        return bookRepository.findById(id)
+                .map(book -> {
+                    bookRepository.delete(book);
+                    return true;
+                })
+                .orElse(false);
+    }
+    
+    // Advanced queries using Streams and Lambdas
+    public List<Book> searchBooks(String title, String author, Book.Genre genre, Double minRating) {
+        return bookRepository.searchBooks(title, author, genre, minRating);
+    }
+    
+    public List<Book> getBooksByAuthor(String author) {
+        return bookRepository.findByAuthorContainingIgnoreCase(author);
+    }
+    
+    public List<Book> getBooksByGenre(Book.Genre genre) {
+        return bookRepository.findByGenre(genre);
+    }
+    
+    public List<Book> getTopRatedBooks(int limit) {
+        return bookRepository.findAll().stream()
+                .filter(book -> book.getRating() != null)
+                .sorted((b1, b2) -> Double.compare(b2.getRating(), b1.getRating()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+    
+    public Map<String, Long> getBooksCountByGenre() {
+        return bookRepository.findAll().stream()
+                .filter(book -> book.getGenre() != null)
+                .collect(Collectors.groupingBy(
+                    book -> book.getGenre().name(),
+                    Collectors.counting()
+                ));
+    }
+    
+    public Map<Integer, Long> getBooksCountByPublicationYear() {
+        return bookRepository.findAll().stream()
+                .collect(Collectors.groupingBy(
+                    Book::getPublicationYear,
+                    Collectors.counting()
+                ));
+    }
+    
+    public List<Book> getRecentBooks(int months) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, -months);
+        Date cutoffDate = calendar.getTime();
+        
+        return bookRepository.findAll().stream()
+                .filter(book -> book.getCreatedAt() != null && 
+                               book.getCreatedAt().atStartOfDay()
+                                   .atZone(java.time.ZoneId.systemDefault())
+                                   .toInstant()
+                                   .isAfter(cutoffDate.toInstant()))
+                .sorted((b1, b2) -> b2.getCreatedAt().compareTo(b1.getCreatedAt()))
+                .collect(Collectors.toList());
+    }
+    
+    public Double getAverageRating() {
+        return bookRepository.findAll().stream()
+                .filter(book -> book.getRating() != null)
+                .mapToDouble(Book::getRating)
+                .average()
+                .orElse(0.0);
+    }
+    
+    public Map<String, Object> getCatalogStatistics() {
+        Object[] stats = bookRepository.getCatalogStatistics();
+        Map<String, Object> result = new HashMap<>();
+        
+        result.put("totalBooks", stats[0]);
+        result.put("averageRating", stats[1]);
+        result.put("oldestPublicationYear", stats[2]);
+        result.put("newestPublicationYear", stats[3]);
+        
+        return result;
+    }
+    
+    public List<String> getAllAuthors() {
+        return bookRepository.findAll().stream()
+                .map(Book::getAuthor)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+    
+    public List<Book> getBooksByYearRange(int startYear, int endYear) {
+        return bookRepository.findBooksByPublicationYearRange(startYear, endYear);
+    }
+}
