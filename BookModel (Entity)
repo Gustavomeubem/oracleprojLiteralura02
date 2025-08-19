@@ -1,0 +1,141 @@
+package com.bookcatalog.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "books")
+public class Book {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @NotBlank(message = "Title is mandatory")
+    @Size(min = 1, max = 200, message = "Title must be between 1-200 characters")
+    private String title;
+    
+    @NotBlank(message = "Author is mandatory")
+    @Size(min = 1, max = 100, message = "Author must be between 1-100 characters")
+    private String author;
+    
+    @NotNull(message = "Publication year is mandatory")
+    @Min(value = 1000, message = "Publication year must be after 1000")
+    @Max(value = 2100, message = "Publication year must be before 2100")
+    private Integer publicationYear;
+    
+    @NotBlank(message = "ISBN is mandatory")
+    @Pattern(regexp = "^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$", 
+             message = "Invalid ISBN format")
+    private String isbn;
+    
+    @Size(max = 500, message = "Description must be less than 500 characters")
+    private String description;
+    
+    @Enumerated(EnumType.STRING)
+    private Genre genre;
+    
+    @DecimalMin(value = "0.0", message = "Rating must be at least 0.0")
+    @DecimalMax(value = "5.0", message = "Rating must be at most 5.0")
+    private Double rating;
+    
+    private Integer pageCount;
+    private String publisher;
+    private String language;
+    
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDate updatedAt;
+    
+    public enum Genre {
+        FICTION, NON_FICTION, SCIENCE_FICTION, FANTASY, MYSTERY, 
+        ROMANCE, BIOGRAPHY, HISTORY, SCIENCE, TECHNOLOGY, OTHER
+    }
+    
+    // Constructors
+    public Book() {
+        this.createdAt = LocalDate.now();
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public Book(String title, String author, Integer publicationYear, String isbn) {
+        this();
+        this.title = title;
+        this.author = author;
+        this.publicationYear = publicationYear;
+        this.isbn = isbn;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getTitle() { return title; }
+    public void setTitle(String title) { 
+        this.title = title; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { 
+        this.author = author; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public Integer getPublicationYear() { return publicationYear; }
+    public void setPublicationYear(Integer publicationYear) { 
+        this.publicationYear = publicationYear; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public String getIsbn() { return isbn; }
+    public void setIsbn(String isbn) { 
+        this.isbn = isbn; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { 
+        this.description = description; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public Genre getGenre() { return genre; }
+    public void setGenre(Genre genre) { 
+        this.genre = genre; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { 
+        this.rating = rating; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public Integer getPageCount() { return pageCount; }
+    public void setPageCount(Integer pageCount) { 
+        this.pageCount = pageCount; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public String getPublisher() { return publisher; }
+    public void setPublisher(String publisher) { 
+        this.publisher = publisher; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { 
+        this.language = language; 
+        this.updatedAt = LocalDate.now();
+    }
+    
+    public LocalDate getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDate getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDate updatedAt) { this.updatedAt = updatedAt; }
+}
