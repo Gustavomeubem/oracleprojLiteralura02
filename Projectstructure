@@ -1,0 +1,14 @@
+book-catalog-api/
+├── src/main/java/com/bookcatalog/
+│   ├── controller/
+│   ├── model/
+│   ├── repository/
+│   ├── service/
+│   └── BookCatalogApplication.java
+├── src/main/resources/
+├── frontend/
+│   ├── index.html
+│   ├── styles.css
+│   └── script.js
+├── pom.xml
+└── README.md
