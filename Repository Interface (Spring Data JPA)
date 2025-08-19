@@ -1,0 +1,42 @@
+package com.bookcatalog.repository;
+
+import com.bookcatalog.model.Book;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, Long> {
+    
+    // Spring Data JPA automatic query methods
+    Optional<Book> findByIsbn(String isbn);
+    List<Book> findByAuthorContainingIgnoreCase(String author);
+    List<Book> findByTitleContainingIgnoreCase(String title);
+    List<Book> findByGenre(Book.Genre genre);
+    List<Book> findByPublicationYear(Integer year);
+    List<Book> findByRatingGreaterThanEqual(Double rating);
+    
+    // Custom query using JPQL with lambdas and streams
+    @Query("SELECT b FROM Book b WHERE b.publicationYear BETWEEN :startYear AND :endYear")
+    List<Book> findBooksByPublicationYearRange(@Param("startYear") Integer startYear, 
+                                             @Param("endYear") Integer endYear);
+    
+    // Custom query for search with multiple criteria
+    @Query("SELECT b FROM Book b WHERE " +
+           "(:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
+           "(:author IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', :author, '%'))) AND " +
+           "(:genre IS NULL OR b.genre = :genre) AND " +
+           "(:minRating IS NULL OR b.rating >= :minRating)")
+    List<Book> searchBooks(@Param("title") String title,
+                          @Param("author") String author,
+                          @Param("genre") Book.Genre genre,
+                          @Param("minRating") Double minRating);
+    
+    // Statistics query using aggregation
+    @Query("SELECT COUNT(b), AVG(b.rating), MIN(b.publicationYear), MAX(b.publicationYear) FROM Book b")
+    Object[] getCatalogStatistics();
+}
