@@ -1,0 +1,123 @@
+package com.bookcatalog.controller;
+
+import com.bookcatalog.model.Book;
+import com.bookcatalog.service.BookService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/books")
+@CrossOrigin(origins = "http://localhost:3000") // Allow frontend connection
+public class BookController {
+    
+    @Autowired
+    private BookService bookService;
+    
+    // GET all books
+    @GetMapping
+    public List<Book> getAllBooks() {
+        return bookService.getAllBooks();
+    }
+    
+    // GET book by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+        Optional<Book> book = bookService.getBookById(id);
+        return book.map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // GET book by ISBN
+    @GetMapping("/isbn/{isbn}")
+    public ResponseEntity<Book> getBookByIsbn(@PathVariable String isbn) {
+        Optional<Book> book = bookService.getBookByIsbn(isbn);
+        return book.map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // POST create new book
+    @PostMapping
+    public Book createBook(@Valid @RequestBody Book book) {
+        return bookService.createBook(book);
+    }
+    
+    // PUT update book
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, 
+                                          @Valid @RequestBody Book bookDetails) {
+        Optional<Book> updatedBook = bookService.updateBook(id, bookDetails);
+        return updatedBook.map(ResponseEntity::ok)
+                         .orElse(ResponseEntity.notFound().build());
+    }
+    
+    // DELETE book
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteBook(@PathVariable Long id) {
+        boolean deleted = bookService.deleteBook(id);
+        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+    
+    // GET books by author
+    @GetMapping("/author/{author}")
+    public List<Book> getBooksByAuthor(@PathVariable String author) {
+        return bookService.getBooksByAuthor(author);
+    }
+    
+    // GET books by genre
+    @GetMapping("/genre/{genre}")
+    public List<Book> getBooksByGenre(@PathVariable Book.Genre genre) {
+        return bookService.getBooksByGenre(genre);
+    }
+    
+    // GET top rated books
+    @GetMapping("/top-rated")
+    public List<Book> getTopRatedBooks(@RequestParam(defaultValue = "10") int limit) {
+        return bookService.getTopRatedBooks(limit);
+    }
+    
+    // GET books count by genre
+    @GetMapping("/stats/genre-count")
+    public Map<String, Long> getBooksCountByGenre() {
+        return bookService.getBooksCountByGenre();
+    }
+    
+    // GET catalog statistics
+    @GetMapping("/stats/catalog")
+    public Map<String, Object> getCatalogStatistics() {
+        return bookService.getCatalogStatistics();
+    }
+    
+    // GET all authors
+    @GetMapping("/authors")
+    public List<String> getAllAuthors() {
+        return bookService.getAllAuthors();
+    }
+    
+    // GET books by year range
+    @GetMapping("/year-range")
+    public List<Book> getBooksByYearRange(@RequestParam int startYear, 
+                                        @RequestParam int endYear) {
+        return bookService.getBooksByYearRange(startYear, endYear);
+    }
+    
+    // GET search books with multiple criteria
+    @GetMapping("/search")
+    public List<Book> searchBooks(@RequestParam(required = false) String title,
+                                 @RequestParam(required = false) String author,
+                                 @RequestParam(required = false) Book.Genre genre,
+                                 @RequestParam(required = false) Double minRating) {
+        return bookService.searchBooks(title, author, genre, minRating);
+    }
+    
+    // GET recent books
+    @GetMapping("/recent")
+    public List<Book> getRecentBooks(@RequestParam(defaultValue = "6") int months) {
+        return bookService.getRecentBooks(months);
+    }
+}
